@@ -14,6 +14,7 @@ import {
 } from '@loopback/rest';
 import {Empleado} from '../models';
 import {EmpleadoRepository} from '../repositories';
+import {AutenticacionService} from '../services/autenticacion.service';
 import {NotificacionService} from '../services/notificacion.service';
 
 export class EmpleadosController {
@@ -21,8 +22,13 @@ export class EmpleadosController {
     @repository(EmpleadoRepository)
     public empleadoRepository : EmpleadoRepository,
     @service(NotificacionService)
-    public enviarMensaje : NotificacionService
-  ) {}
+    public enviarMensaje : NotificacionService,
+    @service(AutenticacionService)
+    public autenticarUsuario: AutenticacionService
+    ) {}
+
+
+
 
   @post('/empleados')
   @response(200, {
@@ -43,14 +49,29 @@ export class EmpleadosController {
     empleado: Omit<Empleado, 'id'>,
   ): Promise<Empleado> {
 
-    let p = this.empleadoRepository.create(empleado);
+    var e = this.empleadoRepository.create(empleado);
 
-    let nombre = (await p).Nombres
-    let telefono = (await p).Telefono
+    // Se seleccionan los datos del empleado
+    let nombre = (await e).Nombres
+    let telefono = (await e).Telefono
+    console.log("Nombre " + nombre )
+    console.log("Telefono " + telefono)
 
-    this.enviarMensaje.enviarSMS(nombre,telefono)
+    // Se genera una contraseña y se cifra
 
-    return p
+    let contraseña = this.autenticarUsuario.generarClave()
+    let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseña)
+
+    console.log(contraseña)
+    console.log(contraseñaCifrada)
+    // Se asigna la contraseña cifrada al empleado para guardarla en la DB
+
+    ;(await e).Clave = contraseñaCifrada
+    console.log((await e).Clave)
+
+    this.enviarMensaje.enviarSMS(nombre,telefono,contraseña)
+
+    return e
   }
 
 
@@ -154,4 +175,11 @@ export class EmpleadosController {
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.empleadoRepository.deleteById(id);
   }
+
+
+
+
+
+
+
 }

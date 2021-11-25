@@ -4,3 +4,4 @@ export * from './empresa.controller';
 export * from './empleados.controller';
 export * from './empresa-sucursal.controller';
 export * from './sucursales.controller';
+export * from './mensaje.controller';

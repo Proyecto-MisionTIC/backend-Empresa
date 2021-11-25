@@ -49,7 +49,15 @@ export class Empleado extends Entity {
     type: 'date',
     required: true,
   })
+
   fechaNacimiento: string;
+
+  @property({
+    type: 'string',
+    required: false,
+  })
+  Clave: string;
+
 
   @property({
     type: 'number',
