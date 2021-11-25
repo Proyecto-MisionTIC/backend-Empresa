@@ -9,10 +9,11 @@ import {
 } from '@loopback/repository';
 import {
   del, get,
-  getModelSchemaRef, param, patch, post, put, requestBody,
+  getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody,
   response
 } from '@loopback/rest';
 import {Empleado} from '../models';
+import {UsuarioLogin} from '../models/usuario-login.model';
 import {EmpleadoRepository} from '../repositories';
 import {AutenticacionService} from '../services/autenticacion.service';
 import {NotificacionService} from '../services/notificacion.service';
@@ -27,6 +28,33 @@ export class EmpleadosController {
     public autenticarUsuario: AutenticacionService
     ) {}
 
+@post('login',{
+  responses:{
+    '200':{
+      descripcion: "Login Empleados"
+    }
+  }
+})
+async loginEmpleado(
+  @requestBody() credeciales: UsuarioLogin
+){
+  let p = await this.autenticarUsuario.validarEmpleado(credeciales.usuario,credeciales.clave)
+  if(p){
+
+    let token = this.autenticarUsuario.GenerarToken(p);
+    return {
+      datos: {
+        nombre: p.Nombres,
+        correo: p.Email,
+        id: p.id
+      },
+      tk: token
+    }
+
+  }else{
+    throw new HttpErrors[401]("Datos invalidos")
+  }
+}
 
 
 
@@ -43,33 +71,28 @@ export class EmpleadosController {
             title: 'NewEmpleado',
             exclude: ['id'],
           }),
+
         },
+
       },
     })
+
     empleado: Omit<Empleado, 'id'>,
   ): Promise<Empleado> {
 
-    var e = this.empleadoRepository.create(empleado);
+    let contraseñaEmpleado = empleado.Clave
+    let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseñaEmpleado)
+    empleado.Clave = contraseñaCifrada
+
+    let e = this.empleadoRepository.create(empleado);
 
     // Se seleccionan los datos del empleado
     let nombre = (await e).Nombres
     let telefono = (await e).Telefono
-    console.log("Nombre " + nombre )
-    console.log("Telefono " + telefono)
 
-    // Se genera una contraseña y se cifra
 
-    let contraseña = this.autenticarUsuario.generarClave()
-    let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseña)
 
-    console.log(contraseña)
-    console.log(contraseñaCifrada)
-    // Se asigna la contraseña cifrada al empleado para guardarla en la DB
-
-    ;(await e).Clave = contraseñaCifrada
-    console.log((await e).Clave)
-
-    this.enviarMensaje.enviarSMS(nombre,telefono,contraseña)
+    this.enviarMensaje.enviarSMS(nombre,telefono,contraseñaEmpleado)
 
     return e
   }

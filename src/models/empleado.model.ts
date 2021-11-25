@@ -54,7 +54,7 @@ export class Empleado extends Entity {
 
   @property({
     type: 'string',
-    required: false,
+    required: true,
   })
   Clave: string;
 
