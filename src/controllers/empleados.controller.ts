@@ -17,7 +17,7 @@ import {UsuarioLogin} from '../models/usuario-login.model';
 import {EmpleadoRepository} from '../repositories';
 import {AutenticacionService} from '../services/autenticacion.service';
 import {NotificacionService} from '../services/notificacion.service';
-
+const crypto = require("crypto-js")
 export class EmpleadosController {
   constructor(
     @repository(EmpleadoRepository)
@@ -38,7 +38,8 @@ export class EmpleadosController {
 async loginEmpleado(
   @requestBody() credeciales: UsuarioLogin
 ){
-  let p = await this.autenticarUsuario.validarEmpleado(credeciales.usuario,credeciales.clave)
+  let contraseñaHash =  crypto.MD5(credeciales.clave)
+  let p = await this.autenticarUsuario.validarEmpleado(credeciales.usuario,contraseñaHash)
   if(p){
 
     let token = this.autenticarUsuario.GenerarToken(p);
@@ -81,7 +82,9 @@ async loginEmpleado(
   ): Promise<Empleado> {
 
     let contraseñaEmpleado = empleado.Clave
+
     let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseñaEmpleado)
+
     empleado.Clave = contraseñaCifrada
 
     let e = this.empleadoRepository.create(empleado);
