@@ -81,6 +81,9 @@ async loginEmpleado(
     empleado: Omit<Empleado, 'id'>,
   ): Promise<Empleado> {
 
+    let nombre = empleado.Nombres
+    let telefono = empleado.Telefono
+
     let contraseñaEmpleado = empleado.Clave
 
     let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseñaEmpleado)
@@ -88,12 +91,6 @@ async loginEmpleado(
     empleado.Clave = contraseñaCifrada
 
     let e = this.empleadoRepository.create(empleado);
-
-    // Se seleccionan los datos del empleado
-    let nombre = (await e).Nombres
-    let telefono = (await e).Telefono
-
-
 
     this.enviarMensaje.enviarSMS(nombre,telefono,contraseñaEmpleado)
 
