@@ -1,22 +1,22 @@
-import {service} from '@loopback/core';
+import { service } from '@loopback/core';
 import {
-  Count,
-  CountSchema,
-  Filter,
-  FilterExcludingWhere,
-  repository,
-  Where
+    Count,
+    CountSchema,
+    Filter,
+    FilterExcludingWhere,
+    repository,
+    Where
 } from '@loopback/repository';
 import {
-  del, get,
-  getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody,
-  response
+    del, get,
+    getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody,
+    response
 } from '@loopback/rest';
-import {Empleado} from '../models';
-import {UsuarioLogin} from '../models/usuario-login.model';
-import {EmpleadoRepository} from '../repositories';
-import {AutenticacionService} from '../services/autenticacion.service';
-import {NotificacionService} from '../services/notificacion.service';
+import { Empleado } from '../models';
+import { UsuarioLogin } from '../models/usuario-login.model';
+import { EmpleadoRepository } from '../repositories';
+import { AutenticacionService } from '../services/autenticacion.service';
+import { NotificacionService } from '../services/notificacion.service';
 const crypto = require("crypto-js")
 export class EmpleadosController {
   constructor(
@@ -28,6 +28,7 @@ export class EmpleadosController {
     public autenticarUsuario: AutenticacionService
     ) {}
 
+   // http://localhost:3000/login
 @post('login',{
   responses:{
     '200':{
@@ -90,11 +91,11 @@ async loginEmpleado(
 
     empleado.Clave = contraseñaCifrada
 
-    let e = this.empleadoRepository.create(empleado);
+    this.empleadoRepository.create(empleado);
 
     this.enviarMensaje.enviarSMS(nombre,telefono,contraseñaEmpleado)
 
-    return e
+    return empleado
   }
 
 

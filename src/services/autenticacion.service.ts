@@ -1,8 +1,8 @@
-import { /* inject, */ BindingScope, injectable} from '@loopback/core';
-import {repository} from '@loopback/repository';
-import {LLaves} from '../config/llaves';
-import {Empleado} from '../models';
-import {EmpleadoRepository} from '../repositories/empleado.repository';
+import { /* inject, */ BindingScope, injectable } from '@loopback/core';
+import { repository } from '@loopback/repository';
+import { LLaves } from '../config/llaves';
+import { Empleado } from '../models';
+import { EmpleadoRepository } from '../repositories/empleado.repository';
 
 
 const generador = require('password-generator')
@@ -16,10 +16,7 @@ export class AutenticacionService {
     public EmpleadoRepository: EmpleadoRepository
   ){}
 
-  generarClave(){
-    let contraseña = generador(8,false)
-    return contraseña
-  }
+
 
   cifrarClave(clave:string){
     let claveCifrada = crypto.MD5(clave).toString();
@@ -38,6 +35,7 @@ export class AutenticacionService {
       return false;
 
     } catch (error) {
+      console.log(error)
       return false;
     }
 
