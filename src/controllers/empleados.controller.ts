@@ -1,23 +1,24 @@
-import { service } from '@loopback/core';
+import {service} from '@loopback/core';
 import {
-    Count,
-    CountSchema,
-    Filter,
-    FilterExcludingWhere,
-    repository,
-    Where
+  Count,
+  CountSchema,
+  Filter,
+  FilterExcludingWhere,
+  repository,
+  Where
 } from '@loopback/repository';
 import {
-    del, get,
-    getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody,
-    response
+  del, get,
+  getModelSchemaRef, HttpErrors, param, patch, post, put, requestBody,
+  response
 } from '@loopback/rest';
-import { Empleado } from '../models';
-import { UsuarioLogin } from '../models/usuario-login.model';
-import { EmpleadoRepository } from '../repositories';
-import { AutenticacionService } from '../services/autenticacion.service';
-import { NotificacionService } from '../services/notificacion.service';
+import {Empleado} from '../models';
+import {UsuarioLogin} from '../models/usuario-login.model';
+import {EmpleadoRepository} from '../repositories';
+import {AutenticacionService} from '../services/autenticacion.service';
+import {NotificacionService} from '../services/notificacion.service';
 const crypto = require("crypto-js")
+
 export class EmpleadosController {
   constructor(
     @repository(EmpleadoRepository)
@@ -40,6 +41,7 @@ async loginEmpleado(
   @requestBody() credeciales: UsuarioLogin
 ){
   let contraseñaHash =  crypto.MD5(credeciales.clave)
+
   let p = await this.autenticarUsuario.validarEmpleado(credeciales.usuario,contraseñaHash)
   if(p){
 
@@ -80,22 +82,23 @@ async loginEmpleado(
     })
 
     empleado: Omit<Empleado, 'id'>,
-  ): Promise<Empleado> {
+  ): Promise<Empleado | null> {
+    let p = this.empleadoRepository.findOne({where:{Email: empleado.Email}})
+    if(await p){
 
-    let nombre = empleado.Nombres
-    let telefono = empleado.Telefono
+      throw new HttpErrors[401]("El Usuario ya se encuentra registrado")
+    }else{
+      let nombre = empleado.Nombres
+      let telefono = empleado.Telefono
+      let contraseñaEmpleado = empleado.Clave
+      let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseñaEmpleado)
+      empleado.Clave = contraseñaCifrada
+      this.empleadoRepository.create(empleado);
+      this.enviarMensaje.enviarSMS(nombre,telefono,contraseñaEmpleado)
+      return empleado
+    }
 
-    let contraseñaEmpleado = empleado.Clave
 
-    let contraseñaCifrada = this.autenticarUsuario.cifrarClave(contraseñaEmpleado)
-
-    empleado.Clave = contraseñaCifrada
-
-    this.empleadoRepository.create(empleado);
-
-    this.enviarMensaje.enviarSMS(nombre,telefono,contraseñaEmpleado)
-
-    return empleado
   }
 
 
